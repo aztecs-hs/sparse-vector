@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
 -- Module      : Data.SparseVector
@@ -35,6 +36,7 @@ module Data.SparseVector
   )
 where
 
+import Control.DeepSeq
 import Control.Monad
 import Data.SparseVector.Mutable (MSparseVector (..))
 import Data.Vector (Vector)
@@ -50,7 +52,7 @@ import Prelude hiding (lookup)
 -- Inserting elements at some dimension @n@ will grow the vector up to @n@,
 -- using @Nothing@ to create empty cells.
 newtype SparseVector a = SparseVector {unSparseVector :: Vector (Maybe a)}
-  deriving (Show, Eq, Functor, Foldable, Traversable)
+  deriving (Show, Eq, Functor, Foldable, Traversable, NFData)
 
 instance Semigroup (SparseVector a) where
   SparseVector v1 <> SparseVector v2 =

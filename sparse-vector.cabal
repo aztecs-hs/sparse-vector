@@ -18,7 +18,8 @@ library
     ghc-options:      -Wall
     build-depends:
         base >=4,
-        vector
+        deepseq >=1,
+        vector >= 0.12
 
 executable sparse-vector
     main-is:          Main.hs
