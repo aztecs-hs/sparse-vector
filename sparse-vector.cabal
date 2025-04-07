@@ -14,7 +14,7 @@ library
     default-language: Haskell2010
     ghc-options:      -Wall
     build-depends:
-        base ^>=4.20.0.0,
+        base >=4,
         vector
 
 executable sparse-vector
@@ -23,7 +23,7 @@ executable sparse-vector
     default-language: Haskell2010
     ghc-options:      -Wall
     build-depends:
-        base ^>=4.20.0.0,
+        base >=4,
         sparse-vector
 
 test-suite sparse-vector-test
@@ -33,5 +33,5 @@ test-suite sparse-vector-test
     default-language: Haskell2010
     ghc-options:      -Wall
     build-depends:
-        base ^>=4.20.0.0,
+        base >=4,
         sparse-vector
