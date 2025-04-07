@@ -48,6 +48,11 @@ lookup :: Int -> SparseVector a -> Maybe a
 lookup i (SparseVector v) = v V.!? i >>= id
 {-# INLINE lookup #-}
 
+delete :: Int -> SparseVector a -> SparseVector a
+delete index (SparseVector vec) =
+  SparseVector $ V.unsafeUpd vec [(index, Nothing)]
+{-# INLINE delete #-}
+
 -- | Freeze a `MSparseVector` into a `SparseVector`.
 freeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
 freeze (MSparseVector vec) = do
