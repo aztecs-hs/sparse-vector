@@ -19,6 +19,11 @@ module Data.SparseVector
     lookup,
     delete,
 
+    -- ** Intersections
+    intersection,
+    intersectionWith,
+    intersectionWithKey,
+
     -- ** Mutations
     freeze,
     thaw,
@@ -77,6 +82,19 @@ delete :: Int -> SparseVector a -> SparseVector a
 delete index (SparseVector vec) =
   SparseVector $ V.unsafeUpd vec [(index, Nothing)]
 {-# INLINE delete #-}
+
+intersection :: SparseVector a -> SparseVector b -> SparseVector a
+intersection = intersectionWith $ \a _ -> a
+
+intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
+intersectionWith = intersectionWithKey . const
+
+intersectionWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
+intersectionWithKey f a b =
+  SparseVector . fmap go . V.indexed . V.zip (unSparseVector a) $ unSparseVector b
+  where
+    go (i, (Just a', Just b')) = Just $ f i a' b'
+    go _ = Nothing
 
 -- | Freeze a `MSparseVector` into a `SparseVector`.
 freeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
