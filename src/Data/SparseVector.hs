@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveTraversable #-}
 
 -- |
@@ -35,6 +34,7 @@ module Data.SparseVector
   )
 where
 
+import Control.Monad
 import Data.SparseVector.Mutable (MSparseVector (..))
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -70,16 +70,24 @@ empty = SparseVector V.empty
 --
 -- Inserting elements at some dimension @n@ will grow the vector up to @n@,
 -- using @Nothing@ to create empty cells.
+--
+-- >>> insert 0 'a' empty
+-- SparseVector {unSparseVector = [Just 'a']}
+--
+-- >>> insert 2 'b' empty
+-- SparseVector {unSparseVector = [Nothing,Nothing,Just 'b']}
 insert :: Int -> a -> SparseVector a -> SparseVector a
 insert index a (SparseVector vec) =
-  SparseVector $ case V.length vec >= index + 1 of
-    True -> V.unsafeUpd vec [(index, Just a)]
-    False -> V.snoc (vec V.++ V.replicate (index - 1) Nothing) (Just a)
+  let len = V.length vec
+   in SparseVector $
+        if len >= index + 1
+          then V.unsafeUpd vec [(index, Just a)]
+          else V.snoc (vec V.++ V.replicate (index - len) Nothing) (Just a)
 {-# INLINE insert #-}
 
 -- | Lookup an element at a given index in a `SparseVector`.
 lookup :: Int -> SparseVector a -> Maybe a
-lookup i (SparseVector v) = v V.!? i >>= id
+lookup i (SparseVector v) = join $ v V.!? i
 {-# INLINE lookup #-}
 
 -- | Delete an index from a `SparseVector`, replacing its cell with @Nothing@.
@@ -92,11 +100,11 @@ mapWithKey :: (Int -> a -> b) -> SparseVector a -> SparseVector b
 mapWithKey f (SparseVector v) =
   let go (i, Just a) = Just $ f i a
       go _ = Nothing
-   in SparseVector $ fmap go $ V.indexed v
+   in SparseVector $ (go <$> V.indexed v)
 {-# INLINE mapWithKey #-}
 
 intersection :: SparseVector a -> SparseVector b -> SparseVector a
-intersection = intersectionWith $ \a _ -> a
+intersection = intersectionWith $ const
 {-# INLINE intersection #-}
 
 intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
