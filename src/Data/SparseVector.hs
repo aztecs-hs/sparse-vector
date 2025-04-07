@@ -69,7 +69,7 @@ insert :: Int -> a -> SparseVector a -> SparseVector a
 insert index a (SparseVector vec) =
   SparseVector $ case V.length vec >= index + 1 of
     True -> V.unsafeUpd vec [(index, Just a)]
-    False -> V.snoc (vec V.++ V.replicate index Nothing) (Just a)
+    False -> V.snoc (vec V.++ V.replicate (index - 1)  Nothing) (Just a)
 {-# INLINE insert #-}
 
 -- | Lookup an element at a given index in a `SparseVector`.
