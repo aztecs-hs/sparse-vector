@@ -1,3 +1,11 @@
+-- |
+-- Module      : Data.SparseVector.Mutable
+-- Copyright   : (c) Matt Hunzinger, 2025
+-- License     : BSD-style (see the LICENSE file in the distribution)
+--
+-- Maintainer  : matt@hunzinger.me
+-- Stability   : provisional
+-- Portability : non-portable (GHC extensions)
 module Data.SparseVector.Mutable where
 
 import Data.Vector.Mutable (MVector, PrimMonad (..))
