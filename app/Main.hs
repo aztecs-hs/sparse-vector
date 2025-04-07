@@ -1,8 +1,6 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import qualified Data.SparseVector as SV
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+main = print $ SV.insert 10 "B" $ SV.insert 0 "A" SV.empty
