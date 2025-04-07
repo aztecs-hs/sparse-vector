@@ -18,6 +18,7 @@ module Data.SparseVector
     lookup,
     delete,
     mapWithKey,
+    mapAccum,
 
     -- ** Intersection
     intersection,
@@ -100,11 +101,20 @@ mapWithKey :: (Int -> a -> b) -> SparseVector a -> SparseVector b
 mapWithKey f (SparseVector v) =
   let go (i, Just a) = Just $ f i a
       go _ = Nothing
-   in SparseVector $ (go <$> V.indexed v)
+   in SparseVector (go <$> V.indexed v)
 {-# INLINE mapWithKey #-}
 
+mapAccum :: (a -> b -> (a, c)) -> a -> SparseVector b -> (a, SparseVector c)
+mapAccum f a (SparseVector v) =
+  let go (acc, vec) mb = case mb of
+        Just b -> let (acc', c) = f acc b in (acc', vec V.++ V.singleton (Just c))
+        Nothing -> (acc, vec V.++ V.singleton Nothing)
+   in let (acc', v') = foldl go (a, V.empty) (V.toList v)
+       in (acc', SparseVector v')
+{-# INLINE mapAccum #-}
+
 intersection :: SparseVector a -> SparseVector b -> SparseVector a
-intersection = intersectionWith $ const
+intersection = intersectionWith const
 {-# INLINE intersection #-}
 
 intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
