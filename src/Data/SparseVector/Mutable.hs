@@ -6,7 +6,11 @@
 -- Maintainer  : matt@hunzinger.me
 -- Stability   : provisional
 -- Portability : non-portable (GHC extensions)
-module Data.SparseVector.Mutable where
+module Data.SparseVector.Mutable
+  ( MSparseVector (..),
+    insert,
+  )
+where
 
 import Data.Vector.Mutable (MVector, PrimMonad (..))
 import qualified Data.Vector.Mutable as MV

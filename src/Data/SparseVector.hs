@@ -9,14 +9,35 @@
 -- Maintainer  : matt@hunzinger.me
 -- Stability   : provisional
 -- Portability : non-portable (GHC extensions)
-module Data.SparseVector where
+module Data.SparseVector
+  ( -- * Sparse vectors
+    SparseVector (..),
+
+    -- ** Operations
+    empty,
+    insert,
+    lookup,
+    delete,
+
+    -- ** Mutations
+    freeze,
+    thaw,
+  )
+where
 
 import Data.SparseVector.Mutable (MSparseVector (..))
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 import Data.Vector.Mutable (PrimMonad (..))
+import Prelude hiding (lookup)
 
 -- | Sparse n-dimensional vector.
+--
+-- A sparse vector is defined as a @Vector (Maybe a)@,
+-- where @Maybe a@ is a cell for an element in the sparse vector.
+--
+-- Inserting elements at some dimension @n@ will grow the vector up to @n@,
+-- using @Nothing@ to create empty cells.
 newtype SparseVector a = SparseVector {unSparseVector :: Vector (Maybe a)}
   deriving (Show, Eq, Functor, Foldable, Traversable)
 
@@ -36,6 +57,9 @@ empty = SparseVector V.empty
 {-# INLINE empty #-}
 
 -- | Insert an element at a given index into a `SparseVector`.
+--
+-- Inserting elements at some dimension @n@ will grow the vector up to @n@,
+-- using @Nothing@ to create empty cells.
 insert :: Int -> a -> SparseVector a -> SparseVector a
 insert index a (SparseVector vec) =
   SparseVector $ case V.length vec >= index + 1 of
@@ -48,6 +72,7 @@ lookup :: Int -> SparseVector a -> Maybe a
 lookup i (SparseVector v) = v V.!? i >>= id
 {-# INLINE lookup #-}
 
+-- | Delete an index from a `SparseVector`, replacing its cell with @Nothing@.
 delete :: Int -> SparseVector a -> SparseVector a
 delete index (SparseVector vec) =
   SparseVector $ V.unsafeUpd vec [(index, Nothing)]
