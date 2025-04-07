@@ -18,11 +18,16 @@ module Data.SparseVector
     insert,
     lookup,
     delete,
+    mapWithKey,
 
-    -- ** Intersections
+    -- ** Intersection
     intersection,
     intersectionWith,
     intersectionWithKey,
+
+    -- ** Conversion
+    fromVector,
+    toVector,
 
     -- ** Mutations
     freeze,
@@ -69,7 +74,7 @@ insert :: Int -> a -> SparseVector a -> SparseVector a
 insert index a (SparseVector vec) =
   SparseVector $ case V.length vec >= index + 1 of
     True -> V.unsafeUpd vec [(index, Just a)]
-    False -> V.snoc (vec V.++ V.replicate (index - 1)  Nothing) (Just a)
+    False -> V.snoc (vec V.++ V.replicate (index - 1) Nothing) (Just a)
 {-# INLINE insert #-}
 
 -- | Lookup an element at a given index in a `SparseVector`.
@@ -83,11 +88,20 @@ delete index (SparseVector vec) =
   SparseVector $ V.unsafeUpd vec [(index, Nothing)]
 {-# INLINE delete #-}
 
+mapWithKey :: (Int -> a -> b) -> SparseVector a -> SparseVector b
+mapWithKey f (SparseVector v) =
+  let go (i, Just a) = Just $ f i a
+      go _ = Nothing
+   in SparseVector $ fmap go $ V.indexed v
+{-# INLINE mapWithKey #-}
+
 intersection :: SparseVector a -> SparseVector b -> SparseVector a
 intersection = intersectionWith $ \a _ -> a
+{-# INLINE intersection #-}
 
 intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
 intersectionWith = intersectionWithKey . const
+{-# INLINE intersectionWith #-}
 
 intersectionWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
 intersectionWithKey f a b =
@@ -95,6 +109,15 @@ intersectionWithKey f a b =
   where
     go (i, (Just a', Just b')) = Just $ f i a' b'
     go _ = Nothing
+{-# INLINE intersectionWithKey #-}
+
+fromVector :: Vector a -> SparseVector a
+fromVector = SparseVector . fmap Just
+{-# INLINE fromVector #-}
+
+toVector :: SparseVector a -> Vector a
+toVector (SparseVector v) = V.catMaybes v
+{-# INLINE toVector #-}
 
 -- | Freeze a `MSparseVector` into a `SparseVector`.
 freeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
