@@ -28,6 +28,9 @@ module Data.SparseVector
     intersection,
     intersectionWith,
     intersectionWithKey,
+    intersectionVec,
+    intersectionVecWith,
+    intersectionVecWithKey,
 
     -- ** Conversion
     fromVector,
@@ -42,6 +45,7 @@ where
 import Control.DeepSeq
 import Control.Monad
 import Control.Monad.State.Strict
+import Data.Maybe
 import Data.SparseVector.Mutable (MSparseVector (..))
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -136,6 +140,22 @@ intersectionWithKey f (SparseVector a) (SparseVector b) =
       go (i, (Just a', Just b')) = Just $ f i a' b'
       go _ = Nothing
    in SparseVector . fmap go . V.indexed $ V.zip as bs
+
+intersectionVec :: SparseVector a -> SparseVector b -> Vector a
+intersectionVec = intersectionVecWith const
+{-# INLINE intersectionVec #-}
+
+intersectionVecWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> Vector c
+intersectionVecWith = intersectionVecWithKey . const
+{-# INLINE intersectionVecWith #-}
+
+intersectionVecWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> Vector c
+intersectionVecWithKey f (SparseVector a) (SparseVector b) =
+  V.mapMaybe go . V.zip (V.fromList [0 ..]) $ V.zip a b
+  where
+    go (i, (Just a', Just b')) = Just $ f i a' b'
+    go _ = Nothing
+{-# INLINE intersectionVecWithKey #-}
 
 fromList :: [(Int, a)] -> SparseVector a
 fromList = foldr (uncurry insert) empty
