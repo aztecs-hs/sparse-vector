@@ -39,4 +39,5 @@ test-suite sparse-vector-test
     ghc-options:      -Wall
     build-depends:
         base >=4,
-        sparse-vector
+        sparse-vector,
+        hspec >=2

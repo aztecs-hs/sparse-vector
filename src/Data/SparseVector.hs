@@ -13,8 +13,11 @@ module Data.SparseVector
   ( -- * Sparse vectors
     SparseVector (..),
 
-    -- ** Operations
+    -- * Construction
     empty,
+    fromList,
+
+    -- ** Operations
     insert,
     lookup,
     delete,
@@ -133,6 +136,9 @@ intersectionWithKey f (SparseVector a) (SparseVector b) =
       go (i, (Just a', Just b')) = Just $ f i a' b'
       go _ = Nothing
    in SparseVector . fmap go . V.indexed $ V.zip as bs
+
+fromList :: [(Int, a)] -> SparseVector a
+fromList = foldr (uncurry insert) empty
 
 fromVector :: Vector a -> SparseVector a
 fromVector = SparseVector . fmap Just
