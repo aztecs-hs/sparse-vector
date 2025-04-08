@@ -38,6 +38,7 @@ where
 
 import Control.DeepSeq
 import Control.Monad
+import Control.Monad.State.Strict
 import Data.SparseVector.Mutable (MSparseVector (..))
 import Data.Vector (Vector)
 import qualified Data.Vector as V
@@ -108,20 +109,20 @@ mapWithKey f (SparseVector v) =
 
 mapAccum :: (a -> b -> (a, c)) -> a -> SparseVector b -> (a, SparseVector c)
 mapAccum f a (SparseVector v) =
-  let go (acc, vec) mb = case mb of
-        Just b -> let (acc', c) = f acc b in (acc', vec V.++ V.singleton (Just c))
-        Nothing -> (acc, vec V.++ V.singleton Nothing)
-   in let (acc', v') = foldl go (a, V.empty) (V.toList v)
-       in (acc', SparseVector v')
-{-# INLINE mapAccum #-}
+  let f' (Just b) = do
+        acc <- get
+        let (acc', c) = f acc b
+        put acc'
+        return (Just c)
+      f' Nothing = return Nothing
+      (v', a') = runState (V.mapM f' v) a
+   in (a', SparseVector v')
 
 intersection :: SparseVector a -> SparseVector b -> SparseVector a
 intersection = intersectionWith const
-{-# INLINE intersection #-}
 
 intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
 intersectionWith = intersectionWithKey . const
-{-# INLINE intersectionWith #-}
 
 intersectionWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
 intersectionWithKey f a b =
@@ -129,15 +130,12 @@ intersectionWithKey f a b =
   where
     go (i, (Just a', Just b')) = Just $ f i a' b'
     go _ = Nothing
-{-# INLINE intersectionWithKey #-}
 
 fromVector :: Vector a -> SparseVector a
 fromVector = SparseVector . fmap Just
-{-# INLINE fromVector #-}
 
 toVector :: SparseVector a -> Vector a
 toVector (SparseVector v) = V.catMaybes v
-{-# INLINE toVector #-}
 
 -- | Freeze a `MSparseVector` into a `SparseVector`.
 freeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)

@@ -19,6 +19,7 @@ library
     build-depends:
         base >=4,
         deepseq >=1,
+        mtl >=2,
         vector >= 0.12
 
 executable sparse-vector
