@@ -125,11 +125,14 @@ intersectionWith :: (a -> b -> c) -> SparseVector a -> SparseVector b -> SparseV
 intersectionWith = intersectionWithKey . const
 
 intersectionWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> SparseVector c
-intersectionWithKey f a b =
-  SparseVector . fmap go . V.indexed . V.zip (unSparseVector a) $ unSparseVector b
-  where
-    go (i, (Just a', Just b')) = Just $ f i a' b'
-    go _ = Nothing
+intersectionWithKey f (SparseVector a) (SparseVector b) =
+  let (as, bs) =
+        if V.length a >= V.length b
+          then (a, b V.++ V.replicate (V.length a - V.length b) Nothing)
+          else (a V.++ V.replicate (V.length b - V.length a) Nothing, b)
+      go (i, (Just a', Just b')) = Just $ f i a' b'
+      go _ = Nothing
+   in SparseVector . fmap go . V.indexed $ V.zip as bs
 
 fromVector :: Vector a -> SparseVector a
 fromVector = SparseVector . fmap Just
