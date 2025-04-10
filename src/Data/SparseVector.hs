@@ -150,11 +150,10 @@ intersectionVecWith = intersectionVecWithKey . const
 {-# INLINE intersectionVecWith #-}
 
 intersectionVecWithKey :: (Int -> a -> b -> c) -> SparseVector a -> SparseVector b -> Vector c
-intersectionVecWithKey f (SparseVector a) (SparseVector b) =
-  V.mapMaybe go . V.indexed $ V.zip a b
+intersectionVecWithKey f (SparseVector a) (SparseVector b) = V.imapMaybe go $ V.zip a b
   where
-    go (i, (Just a', Just b')) = Just $ f i a' b'
-    go _ = Nothing
+    go i (Just a', Just b') = Just $ f i a' b'
+    go _ _ = Nothing
 {-# INLINE intersectionVecWithKey #-}
 
 fromList :: [(Int, a)] -> SparseVector a
