@@ -15,7 +15,6 @@ module Data.SparseVector
 
     -- * Construction
     empty,
-    fromList,
 
     -- ** Operations
     insert,
@@ -33,6 +32,8 @@ module Data.SparseVector
     intersectionVecWithKey,
 
     -- ** Conversion
+    fromList,
+    toList,
     fromVector,
     toVector,
 
@@ -158,6 +159,10 @@ intersectionVecWithKey f (SparseVector a) (SparseVector b) = V.imapMaybe go $ V.
 
 fromList :: [(Int, a)] -> SparseVector a
 fromList = foldr (uncurry insert) empty
+
+toList :: SparseVector a -> [Maybe a]
+toList (SparseVector v) = V.toList v
+{-# INLINE toList #-}
 
 fromVector :: Vector a -> SparseVector a
 fromVector = SparseVector . fmap Just
