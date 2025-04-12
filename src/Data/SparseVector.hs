@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -39,7 +40,9 @@ module Data.SparseVector
 
     -- ** Mutations
     freeze,
+    unsafeFreeze,
     thaw,
+    unsafeThaw,
   )
 where
 
@@ -183,3 +186,17 @@ thaw (SparseVector vec) = do
   vec' <- V.thaw vec
   return $ MSparseVector vec'
 {-# INLINE thaw #-}
+
+-- | Freeze a `MSparseVector` into a `SparseVector`.
+unsafeFreeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
+unsafeFreeze (MSparseVector vec) = do
+  !vec' <- V.unsafeFreeze vec
+  return $ SparseVector vec'
+{-# INLINE unsafeFreeze #-}
+
+-- | Unfreeze a `SparseVector` into a `MSparseVector`.
+unsafeThaw :: (PrimMonad m) => SparseVector a -> m (MSparseVector (PrimState m) a)
+unsafeThaw (SparseVector vec) = do
+  !vec' <- V.unsafeThaw vec
+  return $ MSparseVector vec'
+{-# INLINE unsafeThaw #-}
