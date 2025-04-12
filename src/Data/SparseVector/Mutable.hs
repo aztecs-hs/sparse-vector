@@ -12,9 +12,11 @@ module Data.SparseVector.Mutable
     insert,
     read,
     write,
+    toList,
   )
 where
 
+import qualified Data.Vector as V
 import Data.Vector.Mutable (MVector, PrimMonad (..))
 import qualified Data.Vector.Mutable as MV
 import Prelude hiding (read)
@@ -46,3 +48,7 @@ read (MSparseVector vec) = MV.read vec
 
 write :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> Maybe a -> m ()
 write (MSparseVector vec) = MV.write vec
+
+toList :: (PrimMonad m) => MSparseVector (PrimState m) a -> m [Maybe a]
+toList (MSparseVector v) = V.toList <$> V.freeze v
+{-# INLINE toList #-}
