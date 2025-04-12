@@ -8,14 +8,23 @@
 -- Portability : non-portable (GHC extensions)
 module Data.SparseVector.Mutable
   ( MSparseVector (..),
+    empty,
     insert,
+    read,
+    write,
   )
 where
 
 import Data.Vector.Mutable (MVector, PrimMonad (..))
 import qualified Data.Vector.Mutable as MV
+import Prelude hiding (read)
 
 newtype MSparseVector s a = MSparseVector {unMSparseVector :: MVector s (Maybe a)}
+
+empty :: (PrimMonad m) => m (MSparseVector (PrimState m) a)
+empty = do
+  vec <- MV.new 0
+  return $ MSparseVector vec
 
 insert ::
   (PrimMonad m) =>
@@ -31,3 +40,9 @@ insert index a (MSparseVector vec) = do
       newVec <- MV.replicate (index + 1) Nothing
       MV.write newVec index (Just a)
       return $ MSparseVector newVec
+
+read :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> m (Maybe a)
+read (MSparseVector vec) = MV.read vec
+
+write :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> Maybe a -> m ()
+write (MSparseVector vec) = MV.write vec
