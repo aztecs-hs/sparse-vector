@@ -11,7 +11,9 @@ module Data.SparseVector.Mutable
     empty,
     insert,
     read,
+    unsafeRead,
     write,
+    unsafeWrite,
     toList,
   )
 where
@@ -45,9 +47,19 @@ insert index a (MSparseVector vec) = do
 
 read :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> m (Maybe a)
 read (MSparseVector vec) = MV.read vec
+{-# INLINE read #-}
+
+unsafeRead :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> m (Maybe a)
+unsafeRead (MSparseVector vec) = MV.unsafeRead vec
+{-# INLINE unsafeRead #-}
 
 write :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> Maybe a -> m ()
 write (MSparseVector vec) = MV.write vec
+{-# INLINE write #-}
+
+unsafeWrite :: (PrimMonad m) => MSparseVector (PrimState m) a -> Int -> Maybe a -> m ()
+unsafeWrite (MSparseVector vec) = MV.unsafeWrite vec
+{-# INLINE unsafeWrite #-}
 
 toList :: (PrimMonad m) => MSparseVector (PrimState m) a -> m [Maybe a]
 toList (MSparseVector v) = V.toList <$> V.freeze v
