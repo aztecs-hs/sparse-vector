@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -36,6 +37,10 @@ module Data.SparseVector.Strict
     toList,
     fromVector,
     toVector,
+    freeze,
+    unsafeFreeze,
+    thaw,
+    unsafeThaw,
   )
 where
 
@@ -43,6 +48,8 @@ import Control.DeepSeq
 import Control.Monad
 import Control.Monad.State.Strict
 import Data.Maybe
+import Data.SparseVector.Strict.Mutable (MSparseVector (..))
+import Data.Vector.Mutable (PrimMonad (..))
 import Data.Vector.Strict (Vector)
 import qualified Data.Vector.Strict as V
 import Prelude hiding (lookup)
@@ -163,3 +170,31 @@ fromVector = SparseVector . fmap Just
 
 toVector :: SparseVector a -> Vector a
 toVector (SparseVector v) = V.catMaybes v
+
+-- | Freeze a `MSparseVector` into a `SparseVector`.
+freeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
+freeze (MSparseVector vec) = do
+  vec' <- V.freeze vec
+  return $ SparseVector vec'
+{-# INLINE freeze #-}
+
+-- | Unfreeze a `SparseVector` into a `MSparseVector`.
+thaw :: (PrimMonad m) => SparseVector a -> m (MSparseVector (PrimState m) a)
+thaw (SparseVector vec) = do
+  vec' <- V.thaw vec
+  return $ MSparseVector vec'
+{-# INLINE thaw #-}
+
+-- | Freeze a `MSparseVector` into a `SparseVector`.
+unsafeFreeze :: (PrimMonad m) => MSparseVector (PrimState m) a -> m (SparseVector a)
+unsafeFreeze (MSparseVector vec) = do
+  !vec' <- V.unsafeFreeze vec
+  return $ SparseVector vec'
+{-# INLINE unsafeFreeze #-}
+
+-- | Unfreeze a `SparseVector` into a `MSparseVector`.
+unsafeThaw :: (PrimMonad m) => SparseVector a -> m (MSparseVector (PrimState m) a)
+unsafeThaw (SparseVector vec) = do
+  !vec' <- V.unsafeThaw vec
+  return $ MSparseVector vec'
+{-# INLINE unsafeThaw #-}
